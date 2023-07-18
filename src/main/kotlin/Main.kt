@@ -1,20 +1,37 @@
 package calculator
 
 class Calculator() {
+    private val variablesMap = mutableMapOf<String, Int>()
+
     fun start() {
         while (true) {
             val input = readln().trim()
             when {
                 input == "" -> continue
-                "/.+".toRegex().matches(input) -> println(checkingCommand(input) ?: break)
+                input.startsWith("/") -> println(checkingCommand(input) ?: break)
+                input.contains("=")-> varAssign(input.split("=").map { it.trim() })
+                "[a-zA-Z]+".toRegex().matches(input)-> {
+                    println(variablesMap.getOrDefault(input, null) ?: "Unknown variable")
+                }
                 else -> println(count(input.split(' ').toMutableList()))
             }
         }
         println("Bye!")
     }
 
+    private fun varAssign(inputList: List<String>) {
+        if("[a-zA-Z]+".toRegex().matches(inputList[0])) {
+            if (inputList.size == 2) {
+                try { variablesMap[inputList[0]] = inputList[1].toIntOrNull() ?: variablesMap[inputList[1]]!! }
+                catch (e: Exception) { println("Invalid assignment") }
+            }
+            else println("Invalid assignment")
+        }
+        else println("Invalid identifier")
+    }
+
     //check: is the input command correct?
-    fun checkingCommand(input: String): String? {
+    private fun checkingCommand(input: String): String? {
         return when (input) {
             "/exit" -> null
             "/help" -> "The program calculates the sum of numbers"
@@ -23,7 +40,7 @@ class Calculator() {
     }
 
     //compress math signs and count expression
-    fun count(inputList: MutableList<String>): String {
+    private fun count(inputList: MutableList<String>): String {
         for (signIndex in 1..inputList.size - 1 step 2) { // loop compress math signs from user input
             while (inputList[signIndex].length != 1) {
                 inputList[signIndex] = inputList[signIndex]
@@ -35,7 +52,9 @@ class Calculator() {
         }
         while (inputList.size != 1) { // loop count user input expression and return result to main
             try {
-                inputList[0] = operation(inputList[1], inputList[0].toInt(), inputList[2].toInt())!!.toString()
+                inputList[0] = operation(inputList[1],
+                    inputList[0].toIntOrNull() ?: variablesMap[inputList[0]]!!,
+                    inputList[2].toIntOrNull() ?: variablesMap[inputList[2]]!!)!!.toString()
             } catch (e: Exception) {
                 return "Invalid expression"
             }
@@ -45,8 +64,9 @@ class Calculator() {
         return inputList[0].toIntOrNull()?.toString() ?: "Invalid expression"
     }
 
+
     //choose math operations
-    fun operation(operation: String, a: Int, b: Int): Int? {
+    private fun operation(operation: String, a: Int, b: Int): Int? {
         return when (operation) {
             "+" -> a + b
             "-" -> a - b
