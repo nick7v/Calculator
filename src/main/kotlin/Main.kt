@@ -1,27 +1,29 @@
 package calculator
 
 class Calculator() {
-    private val variablesMap = mutableMapOf<String, Int>()
+    private val variablesMap = mutableMapOf<String, Int>() // it stores names and values of input variables
 
     fun start() {
         while (true) {
             val input = readln().trim()
             when {
                 input == "" -> continue
-                input.startsWith("/") -> println(checkingCommand(input) ?: break)
-                input.contains("=")-> varAssign(input.split("=").map { it.trim() })
-                "[a-zA-Z]+".toRegex().matches(input)-> {
+                input.startsWith("/") -> println(checkingCommand(input) ?: break) // commands
+                input.contains("=")-> varAssign(input.split("=").map { it.trim() }) // variable assignment
+                "[a-zA-Z]+".toRegex().matches(input)-> { // printing the value of a variable
                     println(variablesMap.getOrDefault(input, null) ?: "Unknown variable")
                 }
-                else -> println(count(input.split(' ').toMutableList()))
+                else -> println(count(input.split(' ').toMutableList())) // calculation
             }
         }
         println("Bye!")
     }
 
+    // variable assignment
     private fun varAssign(inputList: List<String>) {
         if("[a-zA-Z]+".toRegex().matches(inputList[0])) {
             if (inputList.size == 2) {
+                // try to assign the number to the variable. if it isn't the number, check - is it a name of variable?
                 try { variablesMap[inputList[0]] = inputList[1].toIntOrNull() ?: variablesMap[inputList[1]]!! }
                 catch (e: Exception) { println("Invalid assignment") }
             }
@@ -63,7 +65,6 @@ class Calculator() {
         }
         return inputList[0].toIntOrNull()?.toString() ?: "Invalid expression"
     }
-
 
     //choose math operations
     private fun operation(operation: String, a: Int, b: Int): Int? {
