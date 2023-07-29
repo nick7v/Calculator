@@ -1,13 +1,12 @@
 package calculator
-
-import kotlin.math.pow
+import java.math.BigInteger
 
 const val VARIABLE = "([a-zA-Z]+)" // one or more letters
 const val OPERAND = "($VARIABLE|(\\d+))" // one or more letters OR one or more numbers
 const val VALID_OPERAND = "((^([+-]?$OPERAND))|$OPERAND)" // operand with ^(power) and maybe with +- sign OR without any signs
 const val OPERATOR = "(([+-]+)|([*/^]))" // one or more + - signs OR only one * / ^ sign
 class Calculator() {
-    private val variablesMap = mutableMapOf<String, Int>() // it stores names and values of input variables
+    private val variablesMap = mutableMapOf<String, BigInteger>() // it stores names and values of input variables
 
     fun start() {
         while (true) {
@@ -29,7 +28,7 @@ class Calculator() {
     private fun String.expression() {
         if (isValidExpression()) {
             val postfix = toPostfix()
-            val stack = ArrayDeque<Int>()
+            val stack = ArrayDeque<BigInteger>()
             for (element in postfix) {
                 if (element.isOperand()) stack.push(element.getVarValue())
                 else stack.push(operation(element, stack.pop(), stack.pop()))
@@ -91,7 +90,7 @@ class Calculator() {
         if(inputList[0].isVariable()) {
             if (inputList.size == 2) {
                 // try to assign the number to the variable. if it isn't the number, check - is it a name of variable?
-                try { variablesMap[inputList[0]] = inputList[1].toIntOrNull() ?: variablesMap[inputList[1]]!! }
+                try { variablesMap[inputList[0]] = inputList[1].toBigIntegerOrNull() ?: variablesMap[inputList[1]]!! }
                 catch (e: Exception) { throw Exception("Invalid assignment") }
             }
             else throw Exception("Invalid assignment")
@@ -109,12 +108,12 @@ class Calculator() {
     }
 
     //choose math operations
-    private fun operation(op: String, x: Int, y: Int) = when (op) {
+    private fun operation(op: String, x: BigInteger, y: BigInteger) = when (op) {
         "+" -> y + x
         "-" -> y - x
         "*" -> y * x
         "/" -> y / x
-        "^" -> y.toDouble().pow(x).toInt()
+        "^" -> y.pow(x.toInt())
         else -> throw Exception("Invalid expression")
     }
 
@@ -125,7 +124,7 @@ class Calculator() {
     }
 
     //if (String is the variable) return it, else if (String is the Integer) return it, else throw Exception
-    private fun String.getVarValue() = variablesMap.getOrElse(this) { this.toIntOrNull() ?: throw Exception("Unknown variable") }
+    private fun String.getVarValue() = variablesMap.getOrElse(this) { this.toBigIntegerOrNull() ?: throw Exception("Unknown variable") }
     private fun String.isValidExpression() = "$VALID_OPERAND(\\s*$OPERATOR\\s*$VALID_OPERAND)*".toRegex()
         .matches(this.replace("[()]".toRegex(), ""))
     private fun String.isOperand() = VALID_OPERAND.toRegex().matches(this)
